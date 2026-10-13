@@ -4,6 +4,10 @@ on:
   push:
     tags: ["v*"]
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release, e.g. 0.1.1 (leave empty to just build)"
+        required: false
 
 permissions:
   contents: write
@@ -25,9 +29,13 @@ jobs:
 
       - name: Work out version
         id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
           if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
             name="${GITHUB_REF#refs/tags/v}"
+          elif [[ -n "$INPUT_VERSION" ]]; then
+            name="${INPUT_VERSION#v}"
           else
             name="0.0.0-dev"
           fi
@@ -36,6 +44,9 @@ jobs:
           [ "$code" -gt 0 ] || code=1
           echo "name=$name" >> "$GITHUB_OUTPUT"
           echo "code=$code" >> "$GITHUB_OUTPUT"
+          if [[ "$GITHUB_REF" == refs/tags/v* || -n "$INPUT_VERSION" ]]; then
+            echo "release=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Test
         run: gradle --no-daemon testDebugUnitTest
@@ -54,10 +65,12 @@ jobs:
           path: dist/*.apk
 
       - name: Publish release
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: steps.version.outputs.release == 'true'
         uses: softprops/action-gh-release@v2
         with:
-          name: Tab Gestures ${{ github.ref_name }}
+          tag_name: v${{ steps.version.outputs.name }}
+          target_commitish: ${{ github.sha }}
+          name: Tab Gestures v${{ steps.version.outputs.name }}
           files: dist/*.apk
           generate_release_notes: true
-          prerelease: ${{ startsWith(github.ref_name, 'v0.') }}
+          prerelease: ${{ startsWith(steps.version.outputs.name, '0.') }}

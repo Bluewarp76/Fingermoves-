@@ -67,12 +67,11 @@ script header for paths.
 
 ### Releasing
 
-Push a version tag and GitHub Actions builds the APK, runs the tests and publishes a release
-with the APK attached (see `.github/workflows/release.yml`):
+GitHub Actions builds the APK, runs the tests and publishes a release with the APK attached
+(see `.github/workflows/release.yml`). Either:
 
-```
-git tag v0.1.1 && git push origin v0.1.1
-```
+- go to **Actions › Build & release › Run workflow** and enter a version such as `0.1.1`, or
+- push a tag: `git tag v0.1.1 && git push origin v0.1.1`
 
 All builds are signed with `tools/debug.keystore`, so a new version installs over the old
 one. It's a throwaway key; switch to a private one before distributing the app widely.
