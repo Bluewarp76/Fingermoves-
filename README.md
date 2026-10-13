@@ -65,6 +65,18 @@ Without AGP (what was used here, since Google's Maven repo wasn't reachable):
 `tools/build-apk.sh` — uses aapt, kotlinc, D8, zipalign and apksigner directly. See the
 script header for paths.
 
+### Releasing
+
+Push a version tag and GitHub Actions builds the APK, runs the tests and publishes a release
+with the APK attached (see `.github/workflows/release.yml`):
+
+```
+git tag v0.1.1 && git push origin v0.1.1
+```
+
+All builds are signed with `tools/debug.keystore`, so a new version installs over the old
+one. It's a throwaway key; switch to a private one before distributing the app widely.
+
 Unit tests for the parser and detector are in `app/src/test` (`./gradlew testDebugUnitTest`).
 
 ## Known limitations
